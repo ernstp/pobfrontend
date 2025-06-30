@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 #include "lua_utils.hpp"
+#include "qnamespace.h"
 
 extern lua_State *L;
 
@@ -30,6 +31,12 @@ void pushMouseString(QMouseEvent *event) {
         break;
     case Qt::MiddleButton:
         lua_pushstring(L, "MIDDLEBUTTON");
+        break;
+    case Qt::ForwardButton:
+        lua_pushstring(L, "MOUSE5");
+        break;
+    case Qt::BackButton:
+        lua_pushstring(L, "MOUSE4");
         break;
     default:
         std::cout << "MOUSE STRING? " << event->button() << std::endl;
