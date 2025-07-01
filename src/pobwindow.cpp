@@ -8,7 +8,9 @@
 #include <memory>
 #include <stdexcept>
 
+#include "lua.h"
 #include "lua_utils.hpp"
+#include "qevent.h"
 #include "qnamespace.h"
 
 extern lua_State *L;
@@ -406,4 +408,27 @@ void POBWindow::DrawColor(uint32_t col) {
     drawColor[1] = ((col >> 8) & 0xFF) / 255.0f;
     drawColor[2] = (col & 0xFF) / 255.0f;
     drawColor[3] = (col >> 24) / 255.0f;
+}
+
+void POBWindow::closeEvent(QCloseEvent *event) {
+    pushCallback("CanExit");
+    int result = lua_pcall(L, 1, 1, 0);
+    if (result != 0) {
+        lua_error(L);
+        return;
+    }
+
+    int n = lua_gettop(L);
+    int canExit = lua_toboolean(L, n);
+    lua_pop(L, 1);
+
+    if (canExit) {
+        pushCallback("OnExit");
+        result = lua_pcall(L, 1, 0, 0);
+        if (result != 0) {
+            lua_error(L);
+        }
+    } else {
+        event->ignore();
+    }
 }
