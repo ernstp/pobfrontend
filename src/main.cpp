@@ -1,6 +1,5 @@
 #include <cstdio>
 #include <iostream>
-#include <iterator>
 #include <memory>
 
 #include <QClipboard>
@@ -11,7 +10,6 @@
 #include <vector>
 #include <zlib.h>
 
-#include "main.h"
 #include "pobwindow.hpp"
 #include "qnamespace.h"
 #include "src/utils.hpp"
