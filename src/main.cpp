@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdio>
 #include <iostream>
 #include <memory>
@@ -12,12 +13,14 @@
 
 #include "pobwindow.hpp"
 #include "qnamespace.h"
+#include "qobject.h"
 #include "src/utils.hpp"
 #include "subscript.hpp"
 #include "lua_utils.hpp"
 #include "lua_cb_gfx.hpp"
 
 lua_State *L;
+QGuiApplication *app;
 
 
 static constexpr const char* describeLuaError(int err)
@@ -770,11 +773,9 @@ static int l_Exit(lua_State* L)
         msg = lua_tostring(L, 1);
     }
     (void)msg;
-    // FIXME
-    //pobwindow->sys->Exit(msg);
-    //pobwindow->didExit = true;
-//	lua_pushstring(L, "dummy");
-//	lua_error(L);
+
+    app->exit();
+
     return 0;
 }
 
@@ -852,9 +853,9 @@ void RegisterGeneralLuaCallbacks(lua_State* L)
 int main(int argc, char **argv)
 {
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-    QGuiApplication app{argc, argv};
+    app = new QGuiApplication(argc, argv);
 
-    QStringList args = app.arguments();
+    QStringList args = app->arguments();
 
     pobwindow = new POBWindow;
 
@@ -961,6 +962,6 @@ int main(int argc, char **argv)
     QFontDatabase::addApplicationFont("VeraMono.ttf");
     QFontDatabase::addApplicationFont("LiberationSans-Regular.ttf");
     QFontDatabase::addApplicationFont("LiberationSans-Bold.ttf");
-    return app.exec();
+    return app->exec();
 }
 

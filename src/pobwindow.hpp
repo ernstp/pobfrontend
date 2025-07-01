@@ -10,6 +10,7 @@
 #include <QTimer>
 
 #include "main.h"
+#include "qevent.h"
 #include "src/texture_loader.hpp"
 #include "subscript.hpp"
 #include "lazy_loaded_texture.hpp"
@@ -55,6 +56,7 @@ public:
     void wheelEvent(QWheelEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+    void closeEvent(QCloseEvent *event);
 
     LazyLoadedTexture& GetLazyLoadedTexture(const QString& path);
     LazyLoadedTexture& GetLazyLoadedTexture(TextureIndex index);
