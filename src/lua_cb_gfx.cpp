@@ -29,8 +29,8 @@ struct imgHandle_s {
 int l_NewImageHandle(lua_State* L)
 {
     // Creates an image handle referencing LazyLoadedTexture 0
-    auto imgHandle = (imgHandle_s*)lua_newuserdata(L, sizeof(imgHandle_s));
-    new (imgHandle) imgHandle_s;
+    auto imgHandle = static_cast<imgHandle_s*>(lua_newuserdata(L, sizeof(imgHandle_s)));
+    std::ranges::construct_at(imgHandle);
     lua_pushvalue(L, lua_upvalueindex(1));
     lua_setmetatable(L, -2);
     return 1;
@@ -366,7 +366,7 @@ DrawStringCmd::DrawStringCmd(float X, float Y, int Align, int Size, int Font, co
 
     QString cacheKey = (QString::number(Font) + "_" + QString::number(Size) + "_" + text);
     if (pobwindow->stringCache.contains(cacheKey)) {
-        tex = *pobwindow->stringCache[cacheKey];
+        tex = pobwindow->stringCache[cacheKey];
     } else {
         QString fontName;
         switch (Font) {
@@ -398,11 +398,11 @@ DrawStringCmd::DrawStringCmd(float X, float Y, int Align, int Size, int Font, co
             p.end();
             tex.reset(new QOpenGLTexture(brush));
         }
-        pobwindow->stringCache.insert(cacheKey, new std::shared_ptr<QOpenGLTexture>(tex));
+        pobwindow->stringCache.emplace(cacheKey, tex);
     }
     int width = 0;
     int height = 0;
-    if (tex.get() != nullptr) {
+    if (tex) {
         width = tex->width();
         height = tex->height();
     }
@@ -494,8 +494,8 @@ int l_DrawStringWidth(lua_State* L)
     text.remove(colourCodes);
 
     QString cacheKey = (fontKey + "_" + QString::number(fontsize) + "_" + text);
-    if (pobwindow->stringCache.contains(cacheKey) && pobwindow->stringCache[cacheKey]->get()) {
-        lua_pushinteger(L, (*pobwindow->stringCache[cacheKey])->width());
+    if (pobwindow->stringCache.contains(cacheKey) && pobwindow->stringCache[cacheKey]) {
+        lua_pushinteger(L, pobwindow->stringCache[cacheKey]->width());
         return 1;
     }
 
