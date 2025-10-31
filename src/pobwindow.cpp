@@ -149,9 +149,6 @@ void POBWindow::paintGL() {
         lua_error(L);
     }
 
-    if (dscount > stringCache.maxCost()) {
-        stringCache.setMaxCost(static_cast<int>(1.2f * dscount));
-    }
     if (uniqueTextureDrawn.size() > textureCache.maxCost()) {
         textureCache.setMaxCost(static_cast<int>(1.2f * uniqueTextureDrawn.size()));
     }

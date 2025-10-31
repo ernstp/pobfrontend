@@ -8,6 +8,7 @@
 #include <QSet>
 #include <QStandardPaths>
 #include <QTimer>
+#include <unordered_map>
 
 #include "main.h"
 #include "qevent.h"
@@ -18,7 +19,7 @@
 class POBWindow : public QOpenGLWindow {
     Q_OBJECT
 public:
-    POBWindow() : stringCache(200), textureCache(12) {
+    POBWindow() : stringCache(), textureCache(12) {
         QString AppDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
         scriptPath = QDir::currentPath() + "/src";
         scriptWorkDir = QDir::currentPath() + "/src";
@@ -97,7 +98,7 @@ public:
     QHash<QString, TextureIndex> textureIndexByPath;
     QSet<size_t> uniqueTextureDrawn;
     QList<LazyLoadedTexture> lazyLoadedTexture;
-    QCache<QString, std::shared_ptr<QOpenGLTexture>> stringCache;
+    std::unordered_map<QString, std::shared_ptr<QOpenGLTexture>> stringCache;
     QCache<size_t, QOpenGLTexture> textureCache;
     QTimer repaintTimer;
 };
