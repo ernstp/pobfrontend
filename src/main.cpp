@@ -8,6 +8,7 @@
 #include <QFontDatabase>
 #include <QtGui/QGuiApplication>
 
+#include <type_traits>
 #include <vector>
 #include <zlib.h>
 
@@ -388,37 +389,30 @@ static int l_Inflate(lua_State* L)
     LAssert(L, lua_isstring(L, 1), "Inflate() argument 1: expected string, got %t", 1);
     size_t inLen;
     Byte* in = (Byte*)lua_tolstring(L, 1, &inLen);
-    int outSz = inLen * 4;
-    Byte* out = new Byte[outSz];
+    const auto outSz = inLen * 4;
+    auto out = std::vector<std::remove_pointer_t<decltype(z_stream_s::next_out)>>(outSz);
     z_stream_s z;
     z.next_in = in;
     z.avail_in = inLen;
     z.zalloc = NULL;
     z.zfree = NULL;
-    z.next_out = out;
-    z.avail_out = outSz;
+    z.next_out = out.data();
+    z.avail_out = out.size();
     inflateInit(&z);
     int err;
     while ((err = inflate(&z, Z_NO_FLUSH)) == Z_OK) {
         if (z.avail_out == 0) {
             // Output buffer filled, embiggen it
-            int newSz = outSz << 1;
-            Byte *newOut = (Byte *)realloc(out, newSz);
-            if (newOut) {
-                out = newOut;
-            } else {
-                // PANIC
-                delete[] out;
-                return 0;
-            }
-            z.next_out = out + outSz;
-            z.avail_out = outSz;
-            outSz = newSz;
+            const auto newSz = out.size() << 1;
+            out.resize(newSz);
+            
+            z.next_out = &out[outSz];
+            z.avail_out = out.size();
         }
       }
     inflateEnd(&z);
     if (err == Z_STREAM_END) {
-        lua_pushlstring(L, (const char*)out, z.total_out);
+        lua_pushlstring(L, reinterpret_cast<const char*>(out.data()), z.total_out);
         return 1;
     } else {
         lua_pushnil(L);
