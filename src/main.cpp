@@ -962,6 +962,10 @@ int main(int argc, char **argv)
     QFontDatabase::addApplicationFont("VeraMono.ttf");
     QFontDatabase::addApplicationFont("LiberationSans-Regular.ttf");
     QFontDatabase::addApplicationFont("LiberationSans-Bold.ttf");
+    QFontDatabase::addApplicationFont("Fontin-Bold.ttf");
+    QFontDatabase::addApplicationFont("Fontin-Italic.ttf");
+    QFontDatabase::addApplicationFont("Fontin-Regular.ttf");
+    QFontDatabase::addApplicationFont("Fontin-SmallCaps.ttf");
     return app->exec();
 }
 
