@@ -3,11 +3,9 @@
 #include <QOpenGLTexture>
 
 #include <memory>
-#include <stdexcept>
 
 extern "C" {
     #include "lua.h"
-    #include "lualib.h"
     #include "lauxlib.h"
 }
 
@@ -17,6 +15,17 @@ extern "C" {
 
 QRegularExpression colourCodes{R"((\^x.{6})|(\^\d))"};
 
+static const char* fontMap[8] = { "FIXED", "VAR", "VAR BOLD", "FONTIN SC", "FONTIN SC ITALIC", "FONTIN", "FONTIN ITALIC", nullptr};
+
+static const char* fonts[7] = {
+    "Bitstream Vera Sans Mono",
+    "Liberation Sans",
+    "Liberation Sans Bold",
+    "Fontin SmallCaps",
+    "Fontin SmallCaps Italic",
+    "Fontin",
+    "Fontin Italic",
+};
 
 // =============
 // Image Handles
@@ -310,7 +319,7 @@ int l_DrawImageQuad(lua_State* L)
     return 0;
 }
 
-DrawStringCmd::DrawStringCmd(float X, float Y, int Align, int Size, int Font, const char *Text) : text(Text) {
+DrawStringCmd::DrawStringCmd(float X, float Y, int Align, int Size, int fontKey, const char *Text) : text(Text) {
     dscount++;
     if (Text[0] == '^' && Text[1] != '\0') {
         switch(Text[1]) {
@@ -364,23 +373,12 @@ DrawStringCmd::DrawStringCmd(float X, float Y, int Align, int Size, int Font, co
     }
     text.remove(colourCodes);
 
-    QString cacheKey = (QString::number(Font) + "_" + QString::number(Size) + "_" + text);
+    QString cacheKey = (QString::number(fontKey) + "_" + QString::number(Size) + "_" + text);
     if (pobwindow->stringCache.contains(cacheKey)) {
         tex = pobwindow->stringCache[cacheKey];
     } else {
-        QString fontName;
-        switch (Font) {
-        case 1:
-            fontName = "Liberation Sans";
-            break;
-        case 2:
-            fontName = "Liberation Sans Bold";
-            break;
-        case 0:
-        default:
-            fontName = "Bitstream Vera Mono";
-            break;
-        }
+        QString fontName = fonts[fontKey];
+
         QFont font(fontName);
         font.setPixelSize(Size + pobwindow->fontFudge);
         QFontMetrics fm(font);
@@ -462,7 +460,6 @@ int l_DrawString(lua_State* L)
     LAssert(L, lua_isstring(L, 5), "DrawString() argument 5: expected string, got %t", 5);
     LAssert(L, lua_isstring(L, 6), "DrawString() argument 6: expected string, got %t", 6);
     static const char* alignMap[6] = { "LEFT", "CENTER", "RIGHT", "CENTER_X", "RIGHT_X", nullptr };
-    static const char* fontMap[4] = { "FIXED", "VAR", "VAR BOLD", nullptr };
     pobwindow->AppendCmd(std::make_unique<DrawStringCmd>(
         (float)lua_tonumber(L, 1), (float)lua_tonumber(L, 2), luaL_checkoption(L, 3, "LEFT", alignMap), 
         (int)lua_tointeger(L, 4), luaL_checkoption(L, 5, "FIXED", fontMap), lua_tostring(L, 6)
@@ -477,23 +474,16 @@ int l_DrawStringWidth(lua_State* L)
     LAssert(L, lua_isnumber(L, 1), "DrawStringWidth() argument 1: expected number, got %t", 1);
     LAssert(L, lua_isstring(L, 2), "DrawStringWidth() argument 2: expected string, got %t", 2);
     LAssert(L, lua_isstring(L, 3), "DrawStringWidth() argument 3: expected string, got %t", 3);
+
     int fontsize = lua_tointeger(L, 1);
-    QString fontName = lua_tostring(L, 2);
-    QString fontKey = "0";
-    if (fontName == "VAR") {
-        fontName = "Liberation Sans";
-        fontKey = "1";
-    } else if (fontName == "VAR BOLD") {
-        fontName = "Liberation Sans Bold";
-        fontKey = "2";
-    } else {
-        fontName = "Bitstream Vera Mono";
-    }
+    int fontKey = luaL_checkoption(L, 2, "FIXED", fontMap);
     QString text(lua_tostring(L, 3));
+
+    QString fontName = fonts[fontKey];
 
     text.remove(colourCodes);
 
-    QString cacheKey = (fontKey + "_" + QString::number(fontsize) + "_" + text);
+    QString cacheKey = (QString::number(fontKey) + "_" + QString::number(fontsize) + "_" + text);
     if (pobwindow->stringCache.contains(cacheKey) && pobwindow->stringCache[cacheKey]) {
         lua_pushinteger(L, pobwindow->stringCache[cacheKey]->width());
         return 1;
@@ -517,15 +507,10 @@ int l_DrawStringCursorIndex(lua_State* L)
     LAssert(L, lua_isnumber(L, 5), "DrawStringCursorIndex() argument 5: expected number, got %t", 5);
 
     int fontsize = lua_tointeger(L, 1);
-    QString fontName = lua_tostring(L, 2);
-    if (fontName == "VAR") {
-        fontName = "Liberation Sans";
-    } else if (fontName == "VAR BOLD") {
-        fontName = "Liberation Sans Bold";
-    } else {
-        fontName = "Bitstream Vera Mono";
-    }
+    int fontKey = luaL_checkoption(L, 2, "FIXED", fontMap);
     QString text(lua_tostring(L, 3));
+
+    QString fontName = fonts[fontKey];
 
     text.remove(colourCodes);
 

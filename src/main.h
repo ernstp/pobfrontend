@@ -20,14 +20,6 @@ enum r_fontAlign_e {
 	F_RIGHT_X
 };
 
-// Fonts
-enum r_fonts_e {
-	F_FIXED,	// Monospaced: Bitsteam Vera Sans Mono
-	F_VAR,		// Normal: Liberation Sans
-	F_VAR_BOLD,	// Normal: Liberation Sans Bold
-	F_NUMFONTS
-};
-
 // Texture flags
 enum r_texFlag_e {	
 	TF_CLAMP	= 0x01,	// Clamp texture
